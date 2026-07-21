@@ -1,0 +1,49 @@
+/* ReadFlow injected translation styles */
+
+/* ── Translation text block ── */
+.rf-translation {
+  display: block;
+  margin-top: 6px;
+  padding: 4px 0;
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "SF Pro Text",
+    "PingFang SC",
+    "Hiragino Sans GB",
+    "Microsoft YaHei",
+    "Noto Sans SC",
+    sans-serif;
+  font-size: 0.92em;
+  line-height: 1.75;
+  color: #6b7280;
+  white-space: pre-wrap;
+  word-break: break-word;
+  border-top: 1px dashed #e5e7eb;
+  font-style: normal;
+  letter-spacing: 0.01em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Dark mode / prefers-color-scheme ── */
+@media (prefers-color-scheme: dark) {
+  .rf-translation {
+    color: #9ca3af;
+    border-top-color: #374151;
+  }
+}
+
+/* ── Mode: original → hide translation ── */
+[data-rf-mode='original'] > .rf-translation {
+  display: none !important;
+}
+
+/* ── Mode: translated-only → hide original text, show translation ── */
+[data-rf-mode='translated-only'] > .rf-translation {
+  color: inherit;
+  border-top: none;
+  margin-top: 0;
+  padding-top: 0;
+  font-size: inherit;
+}

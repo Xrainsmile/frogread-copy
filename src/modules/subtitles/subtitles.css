@@ -1,0 +1,75 @@
+/* ReadFlow 视频字幕叠加层样式（注入到页面 world） */
+.rf-sub-overlay {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: 92%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  pointer-events: none;
+  z-index: 50;
+  font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  line-height: 1.4;
+  text-align: center;
+}
+.rf-sub-overlay.rf-sub-bottom {
+  bottom: 8%;
+  justify-content: flex-end;
+}
+.rf-sub-overlay.rf-sub-top {
+  top: 8%;
+  justify-content: flex-start;
+}
+.rf-sub-line {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+  white-space: pre-wrap;
+}
+.rf-sub-original {
+  opacity: 0.92;
+}
+.rf-sub-translation {
+  opacity: 1;
+}
+.rf-sub-controls {
+  pointer-events: auto;
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.rf-sub-overlay:hover .rf-sub-controls {
+  opacity: 1;
+}
+.rf-sub-btn {
+  pointer-events: auto;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 12px;
+  cursor: pointer;
+  line-height: 1.5;
+}
+.rf-sub-btn:hover {
+  background: rgba(40, 40, 40, 0.85);
+}
+.rf-sub-error {
+  position: absolute;
+  left: 50%;
+  bottom: 12%;
+  transform: translateX(-50%);
+  background: rgba(180, 30, 30, 0.9);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  z-index: 60;
+  pointer-events: none;
+}

@@ -1,0 +1,242 @@
+/* ReadFlow content styles: translation display, floating button, hover dict,
+   selection toolbar. Injected by the content scripts. */
+
+.rf-wrapper {
+  margin-top: 4px;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.rf-translation {
+  color: #2563eb;
+  font-size: 0.95em;
+  line-height: 1.65;
+  background: rgba(37, 99, 235, 0.06);
+  border-left: 3px solid #2563eb;
+  padding: 6px 10px;
+  border-radius: 4px;
+  margin-top: 4px;
+  word-break: break-word;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Per-paragraph loading spinner shown while awaiting the translation API */
+.rf-loader {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin-top: 6px;
+  border: 2px solid rgba(37, 99, 235, 0.25);
+  border-top-color: #2563eb;
+  border-radius: 50%;
+  animation: rf-spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+/* Per-paragraph error marker (red !) */
+.rf-error-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  margin-top: 4px;
+  border-radius: 50%;
+  background: #ef4444;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+/* Per-paragraph retry button (blue ↻) */
+.rf-retry-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  margin-top: 4px;
+  border-radius: 50%;
+  border: 1.5px solid #2563eb;
+  color: #2563eb;
+  font-size: 11px;
+  flex-shrink: 0;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s, background 0.15s, color 0.15s;
+}
+.rf-wrapper:hover .rf-retry-btn {
+  opacity: 1;
+}
+.rf-retry-btn:hover {
+  background: #2563eb;
+  color: #fff;
+}
+.rf-wrapper.rf-retrying .rf-retry-btn {
+  opacity: 1;
+  border-color: #9aa1ac;
+  color: #9aa1ac;
+  animation: rf-spin 0.8s linear infinite;
+  pointer-events: none;
+}
+@keyframes rf-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Display modes (classes on the paragraph element) */
+.rf-original-hidden {
+  visibility: hidden;
+}
+.rf-original-hidden .rf-wrapper {
+  visibility: visible;
+}
+.rf-hide-translation .rf-wrapper {
+  display: none;
+}
+/* Reveal the original on hover when enabled */
+.rf-hover-enabled.rf-original-hidden:hover {
+  visibility: visible;
+}
+
+/* Floating toggle button */
+.rf-floating-btn {
+  position: fixed;
+  right: 20px;
+  bottom: 80px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #2563eb;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+  z-index: 2147483646;
+  user-select: none;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+.rf-floating-btn:hover {
+  transform: scale(1.08);
+}
+.rf-floating-btn.rf-translated {
+  background: #16a34a;
+  box-shadow: 0 4px 14px rgba(22, 163, 74, 0.4);
+}
+.rf-floating-btn.rf-loading {
+  background: #f59e0b;
+  animation: rf-pulse 1s ease-in-out infinite;
+}
+@keyframes rf-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+/* Hover dictionary tooltip */
+#rf-hover-dict {
+  position: fixed;
+  z-index: 2147483647;
+  max-width: 320px;
+  background: #1f2937;
+  color: #f9fafb;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.6;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3);
+  display: none;
+}
+#rf-hover-dict .rf-hover-word {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+#rf-hover-dict .rf-hover-phon {
+  color: #93c5fd;
+  font-weight: 400;
+  margin-left: 6px;
+}
+#rf-hover-dict .rf-hover-def {
+  white-space: pre-wrap;
+}
+
+/* Selection toolbar + bubble */
+.rf-selection-toolbar {
+  position: fixed;
+  z-index: 2147483647;
+  display: none;
+  gap: 2px;
+  background: #1f2937;
+  border-radius: 8px;
+  padding: 4px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3);
+}
+.rf-selection-toolbar button {
+  background: transparent;
+  border: none;
+  color: #f9fafb;
+  font-size: 13px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.rf-selection-toolbar button:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+.rf-toolbar-sep {
+  width: 1px;
+  align-self: stretch;
+  margin: 4px 4px;
+  background: rgba(255, 255, 255, 0.18);
+}
+.rf-selection-bubble {
+  position: fixed;
+  z-index: 2147483647;
+  max-width: 360px;
+  max-height: 240px;
+  overflow-y: auto;
+  background: #fff;
+  color: #1f2937;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+  line-height: 1.65;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
+  display: none;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.rf-bubble-error {
+  color: #ef4444;
+}
+
+/* ── X / Twitter site rule ────────────────────────────────────────────────
+   X truncates long and quoted/embedded tweets with -webkit-line-clamp on the
+   tweetText (plus "Show more"). read-frog ships a built-in rule that unsets
+   the clamp so originals AND inserted translations render at full height.
+   We mirror that rule here. All selectors are X-specific, so they stay inert
+   on every other site. */
+[data-testid='card.layoutLarge.detail'] > div:nth-child(2),
+[data-testid='card.layoutSmall.detail'] > div:nth-child(2),
+[data-testid='tweetText'],
+[role='dialog'] [data-testid='tweetText'],
+[role='dialog'] [style*='-webkit-line-clamp'] {
+  -webkit-line-clamp: unset !important;
+  max-height: none !important;
+}
+/* Grok answer boxes inside the tweet detail dialog */
+[aria-label='Grok'] [data-testid='tweetText'],
+[aria-label='Grok'] [style*='-webkit-line-clamp'] {
+  -webkit-line-clamp: unset !important;
+  max-height: none !important;
+}
+.r-h9hxbl {
+  width: unset !important;
+}

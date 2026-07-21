@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Build output (WXT)
+dist/
+.output/
+.wxt/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+
+# Local secrets / env (never commit real keys)
+.env
+.env.*
+*.local
+
+# Coverage / temp
+coverage/
+.tmp/
