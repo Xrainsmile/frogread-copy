@@ -48,8 +48,6 @@ export class PageTranslator {
    *  a grace window to surface a timeout error. Reset on every progress event. */
   private stallTimer: number | null = null;
 
-  private button: HTMLElement | null = null;
-
   async init(): Promise<void> {
     this.settings = await getSettings();
     const config = await getConfig();
@@ -66,7 +64,6 @@ export class PageTranslator {
       // PDF pages are handled by the dedicated PDF controller.
       return;
     }
-    this.createFloatingButton();
     this.setupMessageListener();
     this.setupUrlPoll();
     this.setupMutationObserver();
@@ -106,33 +103,6 @@ export class PageTranslator {
       });
       if (needsWork) void this.doTranslate();
     }, 1200);
-  }
-
-  // ── Floating button ──
-  private createFloatingButton(): void {
-    if (document.getElementById('rf-floating-btn')) return;
-    const btn = document.createElement('div');
-    btn.id = 'rf-floating-btn';
-    btn.className = 'rf-floating-btn';
-    btn.innerHTML = `<span class="rf-btn-text">译</span>`;
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      this.toggleTranslate();
-    });
-    document.documentElement.appendChild(btn);
-    this.button = btn;
-    this.updateButton();
-  }
-
-  private updateButton(): void {
-    if (!this.button) return;
-    this.button.classList.toggle('rf-translated', this.isTranslated && !this.isTranslating);
-    this.button.classList.toggle('rf-loading', this.isTranslating);
-    const text = this.button.querySelector('.rf-btn-text') as HTMLElement | null;
-    if (!text) return;
-    if (this.isTranslating) text.textContent = '…';
-    else if (this.isTranslated) text.textContent = '原';
-    else text.textContent = '译';
   }
 
   private updateBadge(state: 'on' | 'off' | 'loading' | 'error'): void {
@@ -221,7 +191,6 @@ export class PageTranslator {
 
     this.isTranslating = true;
     this.updateBadge('loading');
-    this.updateButton();
     this.currentUrl = location.href;
 
     if (strMap.size > 0) {
@@ -254,7 +223,6 @@ export class PageTranslator {
     this.isTranslated = true;
     this.isTranslating = false;
     this.updateBadge('on');
-    this.updateButton();
   }
 
   private handlePartialResult(items: { index: number; translated: string }[]): void {
@@ -310,7 +278,6 @@ export class PageTranslator {
     this.isTranslating = false;
     this.errorCooldownUntil = Date.now() + 5000;
     this.updateBadge('error');
-    this.updateButton();
     // Clear any in-flight spinners so they don't hang on a dead request.
     document.querySelectorAll('.' + CSS_PREFIX + 'loader').forEach((n) => n.remove());
   }
@@ -320,7 +287,6 @@ export class PageTranslator {
     this.removeAllTranslations();
     this.clearState();
     this.updateBadge('off');
-    this.updateButton();
   }
 
   private resetForSpaNav(): void {
@@ -328,7 +294,6 @@ export class PageTranslator {
     this.removeAllTranslations();
     this.clearState();
     this.updateBadge('off');
-    this.updateButton();
   }
 
   private clearState(): void {

@@ -102,7 +102,7 @@
   visibility: visible;
 }
 
-/* Floating toggle button */
+/* Floating toggle button (shared by PDF trigger) */
 .rf-floating-btn {
   position: fixed;
   right: 20px;
@@ -125,18 +125,6 @@
 }
 .rf-floating-btn:hover {
   transform: scale(1.08);
-}
-.rf-floating-btn.rf-translated {
-  background: #16a34a;
-  box-shadow: 0 4px 14px rgba(22, 163, 74, 0.4);
-}
-.rf-floating-btn.rf-loading {
-  background: #f59e0b;
-  animation: rf-pulse 1s ease-in-out infinite;
-}
-@keyframes rf-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.55; }
 }
 
 /* Hover dictionary tooltip */
