@@ -1,6 +1,6 @@
 // Paragraph detection — ported from the legacy content/detector.ts.
 
-const MIN_PARAGRAPH_LENGTH = 80;
+const MIN_PARAGRAPH_LENGTH = 40;
 const MAX_PARAGRAPH_LENGTH = 4000;
 
 const INLINE_TAGS = new Set([
@@ -46,9 +46,6 @@ function isParagraphElement(el: Element): boolean {
 
   const p = el.querySelector('p, li, blockquote, td, h1, h2, h3, h4, h5, h6, div');
   if (p) return false;
-
-  const hasVisibleText = text.length > 0 && el.children.length > 0;
-  if (!hasVisibleText) return false;
 
   const cjk = (text.match(/[一-鿿]/g) || []).length;
   const total = text.replace(/\s/g, '').length;
