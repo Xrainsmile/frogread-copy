@@ -29,6 +29,10 @@ const EXCLUDE_SELECTORS = [
   '.sidebar', '#sidebar', '.comment', '.comments', '.ad', '.ads', '.advertisement',
   '.social', '.share', '.menu', '.header', '.footer', '.nav', '.breadcrumb',
   '.pagination', '.related', 'form', 'label', 'figure', '.caption', 'figcaption',
+  // Exclude ReadFlow's own injected elements (wrapper / translation / loader /
+  // retry / error) so translated text isn't re-detected as a new paragraph,
+  // which would cause an infinite translation loop.
+  '.rf-wrapper', '.rf-translation', '.rf-loader', '.rf-error-mark', '.rf-retry-btn',
 ];
 
 function isParagraphElement(el: Element): boolean {
