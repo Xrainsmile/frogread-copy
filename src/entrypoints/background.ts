@@ -5,6 +5,7 @@ import { translate } from '../modules/translation/router';
 import { getProvider } from '../modules/ai';
 import { lookupWord } from '../modules/ai/dictionary';
 import { handlePdfTab } from '../modules/pdf/background';
+import { initContextMenu } from '../modules/background/context-menu';
 import { logger } from '../modules/utils/logger';
 import type { ContentToBackground, BackgroundToContent } from '../modules/messaging';
 
@@ -38,7 +39,8 @@ function updateBadge(state: 'on' | 'off' | 'loading' | 'error'): void {
 const KNOWN_MSG_TYPES = new Set<ContentToBackground['type']>([
   'translate', 'cancel-translation', 'selection-translate', 'lookup', 'translate-pdf',
   'test-connection', 'translate-subtitles', 'translate-texts', 'translate-single',
-  'custom-action', 'update-badge', 'get-translation-status',
+  'custom-action', 'detect-language', 'update-badge', 'get-translation-status',
+  'toggle-page-translation',
 ]);
 
 function isObj(v: unknown): v is Record<string, unknown> {
@@ -82,6 +84,9 @@ function parseMessage(raw: unknown): ContentToBackground | null {
       break;
     case 'update-badge':
       if (!['on', 'off', 'loading', 'error'].includes(raw.state as string)) return null;
+      break;
+    case 'detect-language':
+      if (typeof raw.text !== 'string' || typeof raw.providerId !== 'string') return null;
       break;
     // cancel-translation / get-translation-status: no payload to validate.
   }
@@ -362,8 +367,41 @@ async function handleMessage(
       return;
     }
 
+    case 'detect-language': {
+      try {
+        const config = await getConfig();
+        const settings = deriveSettings(config, message.providerId);
+        const prompt =
+          'Identify the language of the following text. Reply with ONLY a BCP-47 ' +
+          'language code (e.g. en, zh-Hans, ja, ko, fr, de, ru, es, pt, it). ' +
+          'No explanation, no punctuation.';
+        const [result] = await getProvider(settings.provider).translate(
+          [message.text],
+          settings,
+          null,
+          'translate',
+          prompt,
+        );
+        const m = (result || '').match(/[a-z]{2,3}(?:[-_][a-z]{2,4})?/i);
+        sendResponse({ lang: m ? m[0].replace('_', '-') : 'en' });
+      } catch {
+        sendResponse({ lang: 'en' });
+      }
+      return;
+    }
+
     case 'update-badge': {
       updateBadge(message.state);
+      sendResponse({ success: true });
+      return;
+    }
+
+    case 'toggle-page-translation': {
+      // Forwarded from the floating button content script: toggle page
+      // translation on the very tab the button lives in.
+      if (sender.tab?.id) {
+        chrome.tabs.sendMessage(sender.tab.id, { type: 'toggle-translate' }).catch(() => {});
+      }
       sendResponse({ success: true });
       return;
     }
@@ -374,6 +412,8 @@ async function handleMessage(
 }
 
 export default defineBackground(() => {
+  initContextMenu();
+
   chrome.runtime.onMessage.addListener((message: any, sender, sendResponse) => {
     const msg = parseMessage(message);
     if (!msg) {

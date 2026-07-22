@@ -103,6 +103,12 @@ body {
   text-align: center;
   font-size: 15px;
 }
+.rf-nav-icon svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+  fill: currentColor;
+}
 
 /* ── Content ─────────────────────────────────────────── */
 .rf-content {
@@ -174,6 +180,89 @@ body {
 
 .rf-field-col .rf-field-control {
   margin-top: 10px;
+}
+
+/* ── Config card (read-frog 风格卡片) ──────────────────── */
+.rf-config-card {
+  padding: 4px 0;
+  border-bottom: 1px solid var(--rf-border);
+}
+.rf-config-card:last-child {
+  border-bottom: none;
+}
+.rf-config-card .rf-field {
+  border-bottom: none;
+  padding: 12px 0;
+}
+.rf-config-card-text {
+  min-width: 0;
+}
+.rf-config-card .rf-field-label {
+  font-weight: 600;
+}
+.rf-config-tail {
+  padding: 0 0 12px;
+}
+.rf-config-tail .rf-field {
+  border-bottom: 1px solid var(--rf-border);
+}
+.rf-config-tail .rf-field:last-child {
+  border-bottom: none;
+}
+
+/* ── 分段单选 pills ─────────────────────────────────────── */
+.rf-pills {
+  display: inline-flex;
+  border: 1px solid var(--rf-border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--rf-panel);
+}
+.rf-pill {
+  border: 0;
+  background: transparent;
+  padding: 6px 14px;
+  font: 13px/1 inherit;
+  cursor: pointer;
+  color: var(--rf-muted);
+}
+.rf-pill + .rf-pill {
+  border-left: 1px solid var(--rf-border);
+}
+.rf-pill.active {
+  background: var(--rf-primary-weak);
+  color: var(--rf-primary);
+  font-weight: 600;
+}
+
+/* ── 行内链接按钮 ───────────────────────────────────────── */
+.rf-link-btn {
+  background: none;
+  border: 0;
+  color: var(--rf-primary);
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+}
+.rf-link-btn:hover {
+  text-decoration: underline;
+}
+
+/* ── TTS 滑块 ──────────────────────────────────────────── */
+.rf-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.rf-slider-row input[type='range'] {
+  flex: 1;
+  accent-color: var(--rf-primary);
+}
+.rf-slider-val {
+  width: 42px;
+  text-align: right;
+  color: var(--rf-muted);
+  font-variant-numeric: tabular-nums;
 }
 
 /* ── Controls ────────────────────────────────────────── */

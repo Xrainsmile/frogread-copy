@@ -283,3 +283,74 @@ export function PatternListEditor({
     </div>
   );
 }
+
+// ── Config card (read-frog 风格：标题/描述在左，控件在右) ────────
+export function ConfigCard({
+  title,
+  desc,
+  htmlFor,
+  children,
+  tail,
+}: {
+  title: string;
+  desc?: string;
+  htmlFor?: string;
+  children?: ReactNode;
+  tail?: ReactNode;
+}) {
+  return (
+    <div className="rf-config-card">
+      <div className="rf-field">
+        <div className="rf-config-card-text">
+          <label className="rf-field-label" htmlFor={htmlFor}>
+            {title}
+          </label>
+          {desc && <div className="rf-field-desc">{desc}</div>}
+        </div>
+        <div className="rf-field-control">{children}</div>
+      </div>
+      {tail && <div className="rf-config-tail">{tail}</div>}
+    </div>
+  );
+}
+
+// ── 分段单选（pills） ───────────────────────────────────────
+export function RadioPills<T extends string>({
+  value,
+  onChange,
+  options,
+}: {
+  value: T;
+  onChange: (v: T) => void;
+  options: { value: T; label: string }[];
+}) {
+  return (
+    <div className="rf-pills">
+      {options.map((o) => (
+        <button
+          key={o.value}
+          type="button"
+          className={`rf-pill${value === o.value ? ' active' : ''}`}
+          onClick={() => onChange(o.value)}
+        >
+          {o.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// ── 行内链接按钮（用于跨页面跳转） ──────────────────────────
+export function LinkButton({
+  label,
+  onClick,
+}: {
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button type="button" className="rf-link-btn" onClick={onClick}>
+      {label}
+    </button>
+  );
+}

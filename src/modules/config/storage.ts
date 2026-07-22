@@ -106,6 +106,9 @@ function mergeConfig(stored: Partial<AppConfig> | undefined): AppConfig {
     },
     selection: { ...DEFAULT_CONFIG.selection, ...(s.selection || {}) },
     floatingButton: { ...DEFAULT_CONFIG.floatingButton, ...(s.floatingButton || {}) },
+    languageDetection: { ...DEFAULT_CONFIG.languageDetection, ...(s.languageDetection || {}) },
+    tts: { ...DEFAULT_CONFIG.tts, ...(s.tts || {}) },
+    contextMenu: { ...DEFAULT_CONFIG.contextMenu, ...(s.contextMenu || {}) },
   };
 }
 

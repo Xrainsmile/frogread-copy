@@ -23,8 +23,10 @@ export type ContentToBackground =
   | { type: 'translate-texts'; texts: string[]; from?: string; to?: string }
   | { type: 'translate-single'; text: string; session?: number }
   | { type: 'custom-action'; id: string; text: string; actionId: string; session?: number }
+  | { type: 'detect-language'; text: string; providerId: string }
   | { type: 'update-badge'; state: 'on' | 'off' | 'loading' | 'error' }
-  | { type: 'get-translation-status' };
+  | { type: 'get-translation-status' }
+  | { type: 'toggle-page-translation' };
 
 // ── Background -> Content ──
 export type BackgroundToContent =
@@ -34,7 +36,11 @@ export type BackgroundToContent =
   | { type: 'selection-result'; id: string; text: string; result?: string; error?: string; session?: number }
   | { type: 'lookup-result'; word: string; phonetic?: string; definition?: string; error?: string; session?: number }
   | { type: 'test-connection-result'; ok: boolean; message: string }
+  | { type: 'detect-language-result'; lang: string }
   | { type: 'toggle-translate' }
-  | { type: 'translation-status'; isTranslated: boolean };
+  | { type: 'translation-status'; isTranslated: boolean }
+  | { type: 'context-selection-translate'; text: string }
+  | { type: 'context-selection-read'; text: string }
+  | { type: 'context-selection-custom'; text: string; actionId: string };
 
 export type { PageContext };

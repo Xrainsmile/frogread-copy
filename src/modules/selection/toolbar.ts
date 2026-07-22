@@ -6,6 +6,8 @@
 import type { AppConfig } from '../config/types';
 import { getConfig, onConfigChanged } from '../config/storage';
 import type { ContentToBackground, BackgroundToContent } from '../messaging';
+import { speak, stopSpeaking } from '../tts/tts';
+import { hostMatches } from '../utils/hostMatch';
 
 const PREFIX = 'rf';
 const clamp = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, n));
@@ -37,9 +39,6 @@ let currentTaskTitle = '';
 // 若 background SW 休眠/死亡，结果永不回 → spinner 永转。超时后显示错误。
 let responseTimer: number | null = null;
 const RESPONSE_TIMEOUT_MS = 30000;
-
-// ── TTS 状态 ──
-let ttsUtter: SpeechSynthesisUtterance | null = null;
 
 // ── 样式注入（自包含，灰白底 + 深色字） ──
 const STYLE = `
@@ -200,14 +199,22 @@ function rebuildCustomButtons(): void {
     .join('');
 }
 
-function showToolbar(rect: DOMRect): void {
+function showToolbar(rect?: DOMRect): void {
   const tb = ensureToolbar();
   tb.style.display = 'flex';
+  // 无选区矩形（程序化触发，如右键菜单）→ 置于视口顶部居中
+  const r = rect ?? getSelectionRect();
+  if (!r) {
+    const tw = tb.offsetWidth;
+    tb.style.left = `${Math.max(8, window.innerWidth / 2 - tw / 2)}px`;
+    tb.style.top = '80px';
+    return;
+  }
   const tw = tb.offsetWidth;
   const th = tb.offsetHeight;
-  let left = rect.left + rect.width / 2 - tw / 2;
-  let top = rect.top - th - 8;
-  if (top < 8) top = rect.bottom + 8; // 上方放不下则翻到下方
+  let left = r.left + r.width / 2 - tw / 2;
+  let top = r.top - th - 8;
+  if (top < 8) top = r.bottom + 8; // 上方放不下则翻到下方
   left = clamp(left, 8, window.innerWidth - tw - 8);
   tb.style.left = `${left}px`;
   tb.style.top = `${top}px`;
@@ -302,22 +309,34 @@ function doLookup(): void {
 
 function doRead(): void {
   if (!currentText) return;
+  // 朗读（文本转语音）开关关闭时不朗读
+  if (config && config.tts.enabled === false) return;
   const synth = window.speechSynthesis;
   const btn = toolbar?.querySelector('[data-act="read"]') as HTMLButtonElement | null;
   const setReading = (on: boolean) => btn?.classList.toggle('rf-tb-reading', on);
   if (synth.speaking || synth.pending) {
-    synth.cancel();
-    ttsUtter = null;
+    stopSpeaking();
     setReading(false);
     return;
   }
-  const u = new SpeechSynthesisUtterance(currentText);
-  u.lang = document.documentElement.lang || navigator.language || 'en-US';
-  u.onend = () => { ttsUtter = null; setReading(false); };
-  u.onerror = () => { ttsUtter = null; setReading(false); };
-  ttsUtter = u;
+  if (config?.tts.enabled) {
+    speak(currentText, config.tts, config);
+  } else {
+    const u = new SpeechSynthesisUtterance(currentText);
+    u.lang = document.documentElement.lang || navigator.language || 'en-US';
+    u.onend = () => setReading(false);
+    u.onerror = () => setReading(false);
+    synth.speak(u);
+  }
   setReading(true);
-  synth.speak(u);
+}
+
+// 跟随设置显隐「朗读」按钮（文本转语音关闭时隐藏）
+function syncTtsButton(): void {
+  const btn = toolbar?.querySelector('[data-act="read"]') as HTMLButtonElement | null;
+  if (!btn) return;
+  const enabled = !config || config.tts.enabled;
+  btn.style.display = enabled ? '' : 'none';
 }
 
 function doCopy(): void {
@@ -354,6 +373,33 @@ function onClick(e: MouseEvent): void {
   isInteracting = false;
 }
 
+/** 当前站点是否命中「选区工具条」隐藏规则。 */
+function isHostDisabled(): boolean {
+  if (!config) return false;
+  const host = window.location.hostname;
+  return (config.selection.disabledPatterns || []).some((p) => hostMatches(p, host));
+}
+
+/** 由外部触发（如右键菜单）驱动工具条动作，并以气泡呈现结果。 */
+export async function runContextAction(
+  text: string,
+  action: 'translate' | 'read' | 'custom',
+  actionId?: string,
+): Promise<void> {
+  if (!text || !text.trim()) return;
+  if (!toolbar) ensureToolbar();
+  currentText = text.trim();
+  syncTtsButton();
+  showToolbar();
+  if (action === 'read') {
+    doRead();
+  } else if (action === 'translate') {
+    doRequest('translate');
+  } else if (action === 'custom' && actionId) {
+    runCustom(actionId);
+  }
+}
+
 // ── 事件 ──
 function handleMouseUp(e: MouseEvent): void {
   // 右键交给浏览器上下文菜单，不在此触发工具条（仿 read-frog）。
@@ -362,6 +408,9 @@ function handleMouseUp(e: MouseEvent): void {
   // 所以不能用 toolbar.contains(e.target)。改用 composedPath() 保留完整路径判断。
   if (toolbar && e.composedPath().includes(toolbar)) return; // 点工具条本身不处理
   if (isInteracting) { isInteracting = false; return; }
+  // 选区工具条总开关 / 按站点禁用
+  if (config && config.selection.enabled === false) return;
+  if (config && isHostDisabled()) return;
   // 延迟到鼠标松开后读取，确保选区已稳定
   window.setTimeout(() => {
     const text = getSelectedText();
@@ -441,7 +490,9 @@ export async function initSelectionToolbar(): Promise<void> {
   onConfigChanged((c) => {
     config = c;
     rebuildCustomButtons();
+    syncTtsButton();
   });
+  syncTtsButton();
 
   document.addEventListener('mouseup', handleMouseUp, true);
   document.addEventListener('selectionchange', onSelectionChange);

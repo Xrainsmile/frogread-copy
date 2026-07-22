@@ -126,6 +126,8 @@ export const DEFAULT_CONFIG: AppConfig = {
   },
   selection: {
     providerId: 'hunyuan',
+    enabled: true,
+    disabledPatterns: [],
   },
   floatingButton: {
     enabled: true,
@@ -134,5 +136,21 @@ export const DEFAULT_CONFIG: AppConfig = {
     clickAction: 'popup',
     locked: false,
     disabledPatterns: [],
+  },
+  languageDetection: {
+    mode: 'basic',
+    providerId: 'hunyuan',
+  },
+  tts: {
+    enabled: false,
+    voiceURI: '',
+    rate: 1,
+    pitch: 1,
+    volume: 1,
+    langMode: 'auto',
+    customLang: 'zh-CN',
+  },
+  contextMenu: {
+    enabled: true,
   },
 };

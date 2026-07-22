@@ -155,6 +155,10 @@ export interface InputTranslationConfig {
 export interface SelectionConfig {
   /** Provider instance id used for selection (hover/toolbar) translation. */
   providerId: string;
+  /** Master switch for the selection toolbar (划词工具条). */
+  enabled: boolean;
+  /** URL patterns where the selection toolbar is hidden. */
+  disabledPatterns: string[];
 }
 
 // ── 悬浮工具 ────────────────────────────────────────────────────────────
@@ -173,6 +177,37 @@ export interface FloatingButtonConfig {
   disabledPatterns: string[];
 }
 
+// ── 语言检测 ────────────────────────────────────────────────────────────
+export type LanguageDetectionMode = 'basic' | 'llm';
+export interface LanguageDetectionConfig {
+  /** basic = heuristic by script; llm = ask the configured provider. */
+  mode: LanguageDetectionMode;
+  /** Provider instance id used when mode === 'llm'. */
+  providerId: string;
+}
+
+// ── 文本转语音 ──────────────────────────────────────────────────────────
+export type TtsLangMode = 'auto' | 'target' | 'custom';
+export interface TtsConfig {
+  /** Master switch for the 朗读 (read-aloud) feature. */
+  enabled: boolean;
+  /** speechSynthesis voice URI; '' = browser default voice. */
+  voiceURI: string;
+  rate: number;
+  pitch: number;
+  volume: number;
+  /** How to pick the spoken language. */
+  langMode: TtsLangMode;
+  /** BCP-47 code used when langMode === 'custom'. */
+  customLang: string;
+}
+
+// ── 右键菜单 ────────────────────────────────────────────────────────────
+export interface ContextMenuConfig {
+  /** Register custom browser context-menu items (translate / read selection). */
+  enabled: boolean;
+}
+
 // ── 顶层 ───────────────────────────────────────────────────────────────
 export interface AppConfig {
   schemaVersion: number;
@@ -185,4 +220,7 @@ export interface AppConfig {
   inputTranslation: InputTranslationConfig;
   selection: SelectionConfig;
   floatingButton: FloatingButtonConfig;
+  languageDetection: LanguageDetectionConfig;
+  tts: TtsConfig;
+  contextMenu: ContextMenuConfig;
 }

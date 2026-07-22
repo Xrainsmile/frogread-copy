@@ -57,7 +57,11 @@ function Shell() {
     <div className="rf-layout">
       <aside className="rf-sidebar">
         <div className="rf-brand">
-          <span>🐸</span>
+          <img
+            className="rf-brand-logo"
+            src={chrome.runtime.getURL('icon128.png')}
+            alt="ReadFlow"
+          />
           <span>ReadFlow 设置</span>
         </div>
         {NAV_ITEMS.map((item) => (
