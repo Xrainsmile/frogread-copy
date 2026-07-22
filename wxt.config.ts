@@ -60,9 +60,6 @@ export default defineConfig({
   dev: {
     server: { port: 3333, strictPort: false },
   },
-  optionsUi: {
-    openInTab: true,
-  },
   hooks: {
     // WXT auto-generates options_ui with open_in_tab: false when detecting
     // options.html entry. Force override to open in a dedicated tab.
