@@ -42,6 +42,14 @@ export default function TranslationPage() {
         <Field label="AI 内容感知" desc="将网页标题 / 术语表注入提示词，提升上下文一致性。">
           <Switch checked={t.enableAIContentAware} onChange={(v) => update((d) => { d.translate.enableAIContentAware = v; })} />
         </Field>
+        <Field label="术语表" desc="强制特定译法，每行一条「原词 : 译词」，最多生效 10 条（仅混元/太极翻译接口生效）。" vertical>
+          <Textarea
+            value={t.glossary}
+            onChange={(v) => update((d) => { d.translate.glossary = v; })}
+            rows={5}
+            placeholder={'bison : 野牛\nYellowstone Park : 黄石公园\nagent : 智能体'}
+          />
+        </Field>
       </Section>
 
       <Section title="单句翻译">
