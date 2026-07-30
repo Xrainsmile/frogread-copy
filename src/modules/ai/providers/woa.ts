@@ -208,11 +208,13 @@ async function woaTranslateViaApi(
       : undefined;
   const ctx = buildTranslateContext(settings, context);
   const refs = parseGlossaryReferences(context?.glossary);
-  // 术语表可解析为 term 时走结构化 references；否则兜底注入 context。
-  const ctxWithGlossary =
-    refs.length === 0 && context?.glossary
-      ? `${ctx}\n术语表（请优先使用这些译法）：${context.glossary}`.trim()
-      : ctx;
+  // Always surface the FULL glossary as context too. The structured
+  // `references` list is capped at 10 by the API, so terms beyond that would
+  // otherwise be silently dropped — injecting the whole list into context
+  // keeps every term guiding the model (the first 10 also go as references).
+  const ctxWithGlossary = context?.glossary
+    ? `${ctx}\n术语表（请优先使用这些译法）：\n${context.glossary}`.trim()
+    : ctx;
 
   const payload: Record<string, unknown> = {
     model,
