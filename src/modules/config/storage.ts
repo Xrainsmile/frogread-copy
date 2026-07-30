@@ -139,7 +139,7 @@ async function migrateFromLegacy(): Promise<AppConfig | null> {
     if (target) {
       if (legacy.apiKey) target.apiKey = legacy.apiKey;
       if (legacy.endpoint) target.baseURL = legacy.endpoint;
-      if (legacy.model && legacy.model !== 'translate') target.model = legacy.model;
+      if (legacy.model) target.model = legacy.model;
       config.translate.providerId = target.id;
     }
     if (legacy.targetLang) config.general.targetLang = legacy.targetLang;
@@ -284,7 +284,7 @@ export function deriveSettings(config: AppConfig, providerId?: string): Settings
     provider: active?.provider ?? 'hunyuan',
     apiKey: active?.apiKey ?? '',
     endpoint: active?.baseURL ?? '',
-    model: active?.model ?? 'translate',
+    model: active?.model ?? '',
     targetLang: config.general.targetLang,
     sourceLang: config.general.sourceLang,
     level: config.general.level,

@@ -78,6 +78,9 @@ export interface TranslateConfig {
   };
   /** Inject page title / glossary into prompt for consistency. */
   enableAIContentAware: boolean;
+  /** User glossary for consistent term translation, one "term : translation"
+   *  per line (max 10 used). Fed into the dedicated translation interface. */
+  glossary: string;
   /** User override for the translation system prompt (empty => built-in). */
   customPrompt: string;
   requestQueue: {

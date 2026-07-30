@@ -223,6 +223,15 @@ export class PageTranslator {
     this.isTranslated = true;
     this.isTranslating = false;
     this.updateBadge('on');
+    this.broadcastStatus();
+  }
+
+  /** Notify the floating button / popup of the current translation state so
+   *  they reflect reality instead of optimistic local toggles. */
+  private broadcastStatus(): void {
+    chrome.runtime
+      .sendMessage({ type: 'translation-status', isTranslated: this.isTranslated })
+      .catch(() => {});
   }
 
   private handlePartialResult(items: { index: number; translated: string }[]): void {
@@ -287,6 +296,7 @@ export class PageTranslator {
     this.removeAllTranslations();
     this.clearState();
     this.updateBadge('off');
+    this.broadcastStatus();
   }
 
   private resetForSpaNav(): void {

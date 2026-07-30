@@ -45,12 +45,22 @@ export default function App() {
   const [providerOpen, setProviderOpen] = useState(false);
   const [openFeature, setOpenFeature] = useState<string | null>(null);
   const [pageTranslated, setPageTranslated] = useState(false);
+  const [translating, setTranslating] = useState(false);
   const [translateError, setTranslateError] = useState('');
   const [host, setHost] = useState('');
 
   useEffect(() => {
     getSettings().then(setSettings);
     getConfig().then(setConfig);
+    // Reflect the real translation state broadcast by the content script
+    // instead of optimistic local toggles.
+    const onStatus = (msg: any) => {
+      if (msg?.type === 'translation-status') {
+        setPageTranslated(!!msg.isTranslated);
+        setTranslating(false);
+      }
+    };
+    chrome.runtime.onMessage.addListener(onStatus);
     // Query current page translation status from the active tab's content script.
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       const tab = tabs[0];
@@ -65,9 +75,11 @@ export default function App() {
         chrome.tabs.sendMessage(tab.id, { type: 'get-translation-status' }, (resp: any) => {
           if (chrome.runtime.lastError) return; // content not injected yet
           if (resp?.isTranslated) setPageTranslated(true);
+          if (resp?.isTranslating) setTranslating(true);
         });
       }
     });
+    return () => chrome.runtime.onMessage.removeListener(onStatus);
   }, []);
 
   if (!settings || !config) return <div className="rf-loading">加载中…</div>;
@@ -153,7 +165,10 @@ export default function App() {
           setTranslateError('该页面未注入扩展，请刷新页面后重试');
           return;
         }
-        setPageTranslated((v) => !v);
+        // Don't optimistically flip — the content script broadcasts the real
+        // 'translation-status' when translation actually finishes/turns off.
+        // Show a transient "translating" hint until the broadcast arrives.
+        if (!pageTranslated) setTranslating(true);
       });
     });
   };
@@ -227,10 +242,10 @@ export default function App() {
       <button
         className={`rf-translate-action ${pageTranslated ? 'is-translated' : ''}`}
         onClick={toggleTranslate}
-        disabled={siteDisabled}
+        disabled={siteDisabled || translating}
         title={siteDisabled ? '已在本站禁用扩展' : undefined}
       >
-        {siteDisabled ? '已禁用' : pageTranslated ? '显示原文' : '翻译'}
+        {siteDisabled ? '已禁用' : translating ? '翻译中…' : pageTranslated ? '显示原文' : '翻译'}
       </button>
       {translateError && <div className="rf-translate-error">{translateError}</div>}
 
@@ -285,7 +300,7 @@ export default function App() {
           </svg>
           选项
         </button>
-        <span className="rf-version">2.0.0</span>
+        <span className="rf-version">{chrome.runtime.getManifest().version}</span>
       </div>
 
       {/* ── Provider drawer ── */}

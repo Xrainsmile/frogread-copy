@@ -104,8 +104,8 @@ export async function translate(opts: TranslateOptions): Promise<TranslateResult
   });
 
   // 2. Split into batches by char budget + item cap
-  const charBudget = settings.batchQueue?.maxCharactersPerBatch ?? 18000;
-  const maxItems = settings.batchQueue?.maxItemsPerBatch ?? 100;
+  const charBudget = settings.batchQueue?.maxCharactersPerBatch ?? 2000;
+  const maxItems = settings.batchQueue?.maxItemsPerBatch ?? 20;
   const batches: number[][] = [];
   let cur: number[] = [];
   let curChars = 0;
@@ -123,7 +123,7 @@ export async function translate(opts: TranslateOptions): Promise<TranslateResult
 
   // 3. Translate with bounded concurrency + rate limit
   const capacity = clamp(settings.requestQueue?.capacity ?? 5, 1, 20);
-  const rate = settings.requestQueue?.rate ?? 10;
+  const rate = settings.requestQueue?.rate ?? 5;
   const minInterval = rate > 0 ? 1000 / rate : 0;
 
   let cursor = 0;

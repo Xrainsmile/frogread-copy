@@ -88,7 +88,7 @@ function buildButton(): void {
     root.appendChild(style);
     btn = document.createElement('button');
     btn.className = 'rf-fab';
-    btn.title = '翻译此页面';
+    btn.title = cfg.floatingButton.clickAction === 'translate' ? '翻译此页面' : '打开扩展弹窗';
     btn.innerHTML = ICON;
     btn.style.pointerEvents = 'auto';
     root.appendChild(btn);

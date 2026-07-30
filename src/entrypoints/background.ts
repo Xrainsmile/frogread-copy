@@ -77,7 +77,7 @@ function parseMessage(raw: unknown): ContentToBackground | null {
       if (!isStrArr(raw.texts)) return null;
       break;
     case 'test-connection':
-      if (!isObj(raw.settings)) return null;
+      if (typeof raw.providerId !== 'string') return null;
       break;
     case 'translate-pdf':
       if (raw.url !== undefined && typeof raw.url !== 'string') return null;

@@ -51,7 +51,8 @@ function chatUrl(providerId: string, model: string): string {
 }
 
 function resolveModel(settings: Settings): string {
-  return settings.model && settings.model !== 'translate'
+  // Empty string is the "unset" sentinel — fall back to the default model.
+  return settings.model && settings.model.trim()
     ? settings.model
     : 'hunyuan-translation-pro';
 }
@@ -257,7 +258,7 @@ async function woaTranslateViaApi(
   }
 }
 
-async function woaTestConnection(settings: Settings): Promise<ConnectionTest> {
+async function woaTestConnection(providerId: string, settings: Settings): Promise<ConnectionTest> {
   if (!settings.apiKey) return { ok: false, message: '请填写 API Token' };
   const model = resolveModel(settings);
   try {
@@ -265,8 +266,8 @@ async function woaTestConnection(settings: Settings): Promise<ConnectionTest> {
     // - 翻译专用模型 → /translations 接口
     // - 其余模型 → /chat/completions
     const result = isTranslationApiModel(model)
-      ? await woaTranslateViaApi('taiji', ['hello'], settings, null)
-      : await woaTranslate('taiji', ['hello'], settings, null, 'translate');
+      ? await woaTranslateViaApi(providerId, ['hello'], settings, null)
+      : await woaTranslate(providerId, ['hello'], settings, null, 'translate');
     if (result[0]?.trim()) {
       const via = isTranslationApiModel(model) ? '（translations 接口）' : '（chat 接口）';
       return { ok: true, message: `连接成功${via}` };
@@ -297,6 +298,6 @@ export function makeWoaProvider(id: string, name: string): Provider {
     freeModel: false,
     translate: (texts, settings, context, task, systemPrompt) =>
       woaTranslate(id, texts, settings, context, task, systemPrompt),
-    testConnection: (settings) => woaTestConnection(settings),
+    testConnection: (settings) => woaTestConnection(id, settings),
   };
 }

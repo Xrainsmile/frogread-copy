@@ -2,12 +2,14 @@
 // Mirrors read-frog's idea of feeding the page title / headings / glossary into
 // the translation prompt so terms stay consistent across a page.
 
+import { getConfig } from '../config/storage';
+
 export interface PageContext {
   title: string;
   url: string;
   description?: string;
   headings: string[];
-  /** Optional user glossary (term -> translation), read from extension storage. */
+  /** Optional user glossary (term -> translation), from translate.glossary config. */
   glossary?: string;
 }
 
@@ -35,14 +37,14 @@ export function extractPageContext(): Omit<PageContext, 'glossary'> {
   return { title, url, description, headings };
 }
 
-/** Async variant that also attaches the user glossary from extension storage. */
+/** Async variant that also attaches the user glossary from translate config. */
 export async function getPageContext(): Promise<PageContext> {
   const base = extractPageContext();
   let glossary: string | undefined;
   try {
-    const stored = await chrome.storage.local.get('rf-cfg');
-    const raw = stored['rf-cfg'] as string | undefined;
-    if (raw && raw.trim()) glossary = raw.trim();
+    const config = await getConfig();
+    const g = config.translate.glossary;
+    if (g && g.trim()) glossary = g.trim();
   } catch {
     /* storage unavailable — ignore */
   }

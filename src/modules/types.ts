@@ -63,11 +63,16 @@ export interface Settings {
   batchQueue: { maxCharactersPerBatch: number; maxItemsPerBatch: number };
 }
 
+// Canonical defaults for the legacy Settings view. Keep in sync with
+// DEFAULT_CONFIG.translate (config/default.ts) — Settings is a *derived view*
+// of AppConfig (see config/storage.ts deriveSettings), not an independent
+// source of truth. `model` uses '' as the "unset" sentinel (never the literal
+// string 'translate').
 export const DEFAULT_SETTINGS: Settings = {
   provider: 'hunyuan',
   apiKey: '',
   endpoint: '',
-  model: 'translate',
+  model: '',
   targetLang: 'zh-Hans',
   sourceLang: 'auto',
   level: 'intermediate',
@@ -76,8 +81,8 @@ export const DEFAULT_SETTINGS: Settings = {
   autoTranslate: false,
   customPrompt: '',
   enableAIContentAware: true,
-  requestQueue: { capacity: 5, rate: 10 },
-  batchQueue: { maxCharactersPerBatch: 18000, maxItemsPerBatch: 100 },
+  requestQueue: { capacity: 5, rate: 5 },
+  batchQueue: { maxCharactersPerBatch: 2000, maxItemsPerBatch: 20 },
 };
 
 export interface AIModelOption {

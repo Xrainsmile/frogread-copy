@@ -84,9 +84,10 @@ export const DEFAULT_CONFIG: AppConfig = {
       minWordsPerNode: 1,
     },
     enableAIContentAware: true,
+    glossary: '',
     customPrompt: '',
     requestQueue: {
-      capacity: 300,
+      capacity: 5,
       rate: 5,
     },
     batchQueue: {
@@ -133,7 +134,7 @@ export const DEFAULT_CONFIG: AppConfig = {
     enabled: true,
     position: 0.66,
     side: 'right',
-    clickAction: 'popup',
+    clickAction: 'translate',
     locked: false,
     disabledPatterns: [],
   },
