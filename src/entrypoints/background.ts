@@ -40,7 +40,7 @@ const KNOWN_MSG_TYPES = new Set<ContentToBackground['type']>([
   'translate', 'cancel-translation', 'selection-translate', 'lookup', 'translate-pdf',
   'test-connection', 'translate-subtitles', 'translate-texts', 'translate-single',
   'custom-action', 'detect-language', 'update-badge', 'get-translation-status',
-  'toggle-page-translation',
+  'toggle-page-translation', 'translation-status',
 ]);
 
 function isObj(v: unknown): v is Record<string, unknown> {
@@ -87,6 +87,9 @@ function parseMessage(raw: unknown): ContentToBackground | null {
       break;
     case 'detect-language':
       if (typeof raw.text !== 'string' || typeof raw.providerId !== 'string') return null;
+      break;
+    case 'translation-status':
+      if (typeof raw.isTranslated !== 'boolean') return null;
       break;
     // cancel-translation / get-translation-status: no payload to validate.
   }
@@ -392,6 +395,19 @@ async function handleMessage(
 
     case 'update-badge': {
       updateBadge(message.state);
+      sendResponse({ success: true });
+      return;
+    }
+
+    case 'translation-status': {
+      // Relay to this tab's content scripts (floating button etc.). A runtime
+      // message from a content script reaches background + extension pages but
+      // NOT other content scripts, so re-broadcast via tabs.sendMessage.
+      if (tabId) {
+        chrome.tabs
+          .sendMessage(tabId, { type: 'translation-status', isTranslated: message.isTranslated } as BackgroundToContent)
+          .catch(() => {});
+      }
       sendResponse({ success: true });
       return;
     }

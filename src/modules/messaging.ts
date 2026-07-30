@@ -26,6 +26,7 @@ export type ContentToBackground =
   | { type: 'detect-language'; text: string; providerId: string }
   | { type: 'update-badge'; state: 'on' | 'off' | 'loading' | 'error' }
   | { type: 'get-translation-status' }
+  | { type: 'translation-status'; isTranslated: boolean }
   | { type: 'toggle-page-translation' };
 
 // ── Background -> Content ──
