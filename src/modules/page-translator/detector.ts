@@ -72,6 +72,18 @@ function isParagraphElement(el: Element, opts: Required<DetectOptions>): boolean
   return words >= opts.minWords;
 }
 
+/** Recursively collect all elements under root, descending into open shadow
+ *  roots. querySelectorAll('*') cannot pierce Shadow DOM, which web-component
+ *  apps (e.g. Moody's Orbis) use for whole panels — without this the detector
+ *  is blind to them entirely. */
+function collectDeep(root: ParentNode, out: Element[]): void {
+  const all = root.querySelectorAll('*');
+  for (const el of Array.from(all)) {
+    out.push(el);
+    if (el.shadowRoot) collectDeep(el.shadowRoot, out);
+  }
+}
+
 function getMainContent(opts: Required<DetectOptions>): Element[] {
   const candidates = [
     document.querySelector('main'),
@@ -86,7 +98,9 @@ function getMainContent(opts: Required<DetectOptions>): Element[] {
   let ps: Element[] = [];
   for (const container of [candidates[0], document.body]) {
     if (!container) continue;
-    ps = Array.from(container.querySelectorAll('*')).filter((el) => isParagraphElement(el, opts));
+    const all: Element[] = [];
+    collectDeep(container, all);
+    ps = all.filter((el) => isParagraphElement(el, opts));
     if (ps.length >= 3 || container === document.body) break;
   }
 
