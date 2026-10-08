@@ -8,6 +8,10 @@ export interface DetectOptions {
   /** Min word count for non-CJK text. Default 1 — the old hardcoded 10
    *  silently dropped all short UI labels on app-style pages. */
   minWords?: number;
+  /** BCP-47 target language. When the target is Chinese, CJK-dominant text is
+   *  ALREADY in the target language and must be skipped — otherwise localized
+   *  UI (e.g. X's Chinese interface) gets "translated" again into junk. */
+  targetLang?: string;
 }
 
 const DEFAULT_MIN_CHARS = 2;
@@ -37,9 +41,14 @@ const EXCLUDE_SELECTORS = [
   'script', 'style', 'noscript', 'svg', 'path', 'button', 'input', 'textarea',
   'select', 'option', 'code', 'pre', 'template', '[role="navigation"]',
   '[role="banner"]', '[role="contentinfo"]', 'nav', 'header', 'footer', 'aside',
+  'time', '[role="complementary"]',
   '.sidebar', '#sidebar', '.comment', '.comments', '.ad', '.ads', '.advertisement',
   '.social', '.share', '.menu', '.header', '.footer', '.nav', '.breadcrumb',
   '.pagination', '.related', 'form', 'label', 'figure', '.caption', 'figcaption',
+  // X (Twitter) UI chrome: user name/handle line, social context ("已转帖"),
+  // and the right-hand trends/sidebar column — all UI, not content.
+  '[data-testid="User-Name"]', '[data-testid="socialContext"]',
+  '[data-testid="sidebarColumn"]',
   // Exclude ReadFlow's own injected elements (wrapper / translation / loader /
   // retry / error) so translated text isn't re-detected as a new paragraph,
   // which would cause an infinite translation loop.
@@ -66,7 +75,11 @@ function isParagraphElement(el: Element, opts: Required<DetectOptions>): boolean
 
   const cjk = (text.match(/[一-鿿]/g) || []).length;
   const total = text.replace(/\s/g, '').length;
-  if (total > 0 && cjk / total > 0.7) return true;
+  const cjkDominant = total > 0 && cjk / total > 0.7;
+  // Skip text already in the target language (e.g. X's Chinese-localized UI
+  // when target=zh). Translating it again produces junk wrappers everywhere.
+  const targetIsChinese = (opts.targetLang ?? '').toLowerCase().startsWith('zh');
+  if (cjkDominant) return !targetIsChinese;
 
   const words = text.split(/\s+/).length;
   return words >= opts.minWords;
@@ -124,5 +137,6 @@ export function detectParagraphs(opts?: DetectOptions): Element[] {
   return getMainContent({
     minChars: opts?.minChars ?? DEFAULT_MIN_CHARS,
     minWords: opts?.minWords ?? DEFAULT_MIN_WORDS,
+    targetLang: opts?.targetLang ?? '',
   });
 }

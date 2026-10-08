@@ -100,7 +100,10 @@ export class PageTranslator {
         if (!document.contains(el)) this.translatedSet.delete(el);
       }
 
-      const paragraphs = detectParagraphs({ minWords: this.minWordsPerNode });
+      const paragraphs = detectParagraphs({
+      minWords: this.minWordsPerNode,
+      targetLang: this.settings.targetLang,
+    });
       const needsWork = paragraphs.some((el) => {
         if (!this.translatedSet.has(el)) return true;
         return !getExistingWrapper(el as HTMLElement);
@@ -156,7 +159,10 @@ export class PageTranslator {
 
   // ── Translate ──
   async doTranslate(): Promise<void> {
-    const paragraphs = detectParagraphs({ minWords: this.minWordsPerNode });
+    const paragraphs = detectParagraphs({
+      minWords: this.minWordsPerNode,
+      targetLang: this.settings.targetLang,
+    });
     const strMap = new Map<string, string>();
     const texts: string[] = [];
     const baseIndex = this.storedHashKeys.length;
@@ -357,7 +363,10 @@ export class PageTranslator {
 
   private onDomChange(): void {
     if (!this.isTranslated || this.isTranslating) return;
-    const paragraphs = detectParagraphs({ minWords: this.minWordsPerNode });
+    const paragraphs = detectParagraphs({
+      minWords: this.minWordsPerNode,
+      targetLang: this.settings.targetLang,
+    });
     const newOnes = paragraphs.filter((el) => !this.translatedSet.has(el));
     if (newOnes.length === 0) return;
     if (this.domDebounce) clearTimeout(this.domDebounce);
