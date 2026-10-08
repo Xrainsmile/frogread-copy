@@ -1,6 +1,17 @@
 // Paragraph detection — ported from the legacy content/detector.ts.
 
-const MIN_PARAGRAPH_LENGTH = 40;
+/** Detection thresholds, overridable per-call (page translation wires the
+ *  user's translate.page.minWordsPerNode config through here). */
+export interface DetectOptions {
+  /** Min sanitized-text length. Default 2 (short UI labels allowed). */
+  minChars?: number;
+  /** Min word count for non-CJK text. Default 1 — the old hardcoded 10
+   *  silently dropped all short UI labels on app-style pages. */
+  minWords?: number;
+}
+
+const DEFAULT_MIN_CHARS = 2;
+const DEFAULT_MIN_WORDS = 1;
 const MAX_PARAGRAPH_LENGTH = 4000;
 
 const INLINE_TAGS = new Set([
@@ -35,12 +46,14 @@ const EXCLUDE_SELECTORS = [
   '.rf-wrapper', '.rf-translation', '.rf-loader', '.rf-error-mark', '.rf-retry-btn',
 ];
 
-function isParagraphElement(el: Element): boolean {
+function isParagraphElement(el: Element, opts: Required<DetectOptions>): boolean {
   if (EXCLUDE_SELECTORS.some((sel) => el.matches(sel))) return false;
   if (el.closest(EXCLUDE_SELECTORS.join(','))) return false;
 
   const text = sanitizeText(el);
-  if (text.length < MIN_PARAGRAPH_LENGTH || text.length > MAX_PARAGRAPH_LENGTH) return false;
+  if (text.length < opts.minChars || text.length > MAX_PARAGRAPH_LENGTH) return false;
+  // Must contain at least one letter — skips pure-symbol/number junk (↻, ★, 2024).
+  if (!/\p{L}/u.test(text)) return false;
 
   const hasInline =
     Array.from(el.childNodes).some(
@@ -56,10 +69,10 @@ function isParagraphElement(el: Element): boolean {
   if (total > 0 && cjk / total > 0.7) return true;
 
   const words = text.split(/\s+/).length;
-  return words >= 10;
+  return words >= opts.minWords;
 }
 
-function getMainContent(): Element[] {
+function getMainContent(opts: Required<DetectOptions>): Element[] {
   const candidates = [
     document.querySelector('main'),
     document.querySelector('article'),
@@ -73,7 +86,7 @@ function getMainContent(): Element[] {
   let ps: Element[] = [];
   for (const container of [candidates[0], document.body]) {
     if (!container) continue;
-    ps = Array.from(container.querySelectorAll('*')).filter(isParagraphElement);
+    ps = Array.from(container.querySelectorAll('*')).filter((el) => isParagraphElement(el, opts));
     if (ps.length >= 3 || container === document.body) break;
   }
 
@@ -93,6 +106,9 @@ function getMainContent(): Element[] {
   return ps;
 }
 
-export function detectParagraphs(): Element[] {
-  return getMainContent();
+export function detectParagraphs(opts?: DetectOptions): Element[] {
+  return getMainContent({
+    minChars: opts?.minChars ?? DEFAULT_MIN_CHARS,
+    minWords: opts?.minWords ?? DEFAULT_MIN_WORDS,
+  });
 }

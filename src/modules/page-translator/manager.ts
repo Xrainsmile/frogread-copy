@@ -32,6 +32,9 @@ export class PageTranslator {
 
   private isTranslated = false;
   private isTranslating = false;
+  /** From translate.page.minWordsPerNode — fed into detectParagraphs so the
+   *  UI setting actually controls short-text detection. */
+  private minWordsPerNode = 1;
   /** Whether the current translation was started by auto-translate (vs manual). */
   private autoStarted = false;
 
@@ -51,6 +54,7 @@ export class PageTranslator {
   async init(): Promise<void> {
     this.settings = await getSettings();
     const config = await getConfig();
+    this.minWordsPerNode = config.translate.page.minWordsPerNode;
     const host = location.hostname;
     // Per-site disable (read-frog "在此网站禁用扩展").
     if (isSiteDisabled(config.siteRules.blacklistPatterns, config.siteRules.whitelistPatterns, config.siteRules.mode, host)) {
@@ -96,7 +100,7 @@ export class PageTranslator {
         if (!document.contains(el)) this.translatedSet.delete(el);
       }
 
-      const paragraphs = detectParagraphs();
+      const paragraphs = detectParagraphs({ minWords: this.minWordsPerNode });
       const needsWork = paragraphs.some((el) => {
         if (!this.translatedSet.has(el)) return true;
         return !getExistingWrapper(el as HTMLElement);
@@ -152,7 +156,7 @@ export class PageTranslator {
 
   // ── Translate ──
   async doTranslate(): Promise<void> {
-    const paragraphs = detectParagraphs();
+    const paragraphs = detectParagraphs({ minWords: this.minWordsPerNode });
     const strMap = new Map<string, string>();
     const texts: string[] = [];
     const baseIndex = this.storedHashKeys.length;
@@ -353,7 +357,7 @@ export class PageTranslator {
 
   private onDomChange(): void {
     if (!this.isTranslated || this.isTranslating) return;
-    const paragraphs = detectParagraphs();
+    const paragraphs = detectParagraphs({ minWords: this.minWordsPerNode });
     const newOnes = paragraphs.filter((el) => !this.translatedSet.has(el));
     if (newOnes.length === 0) return;
     if (this.domDebounce) clearTimeout(this.domDebounce);
@@ -432,6 +436,7 @@ export class PageTranslator {
    * `autoTranslate` flag, so removing a site never stopped it from re-translating.
    */
   private onConfigChanged = (config: AppConfig): void => {
+    this.minWordsPerNode = config.translate.page.minWordsPerNode;
     const host = location.hostname;
     const shouldAuto = config.translate.page.autoTranslatePatterns.some((p) => hostMatches(p, host));
     const wasAuto = this.settings.autoTranslate;
